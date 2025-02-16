@@ -16,29 +16,30 @@ if not os.path.exists(UPLOAD_FOLDER):
 # ===========================
 # DATABASE HELPER FUNCTIONS
 # ===========================
-def connect_to_database():
-    return sqlite3.connect(app.config['DATABASE'])
+def connect_to_natlpark_db():
+    return sqlite3.connect(DATABASE)
 
-def connect_users_db():
+def connect_to_users_db():
     return sqlite3.connect(USERS_DATABASE)
 
-def get_db():
-    db = getattr(g, 'db', None)
-    if db is None:
-        db = g.db = connect_to_database()
-    return db
+# ===========================
+# VIEWDB AND STATE ROUTES
+# ===========================
+@app.route("/viewdb")
+def viewdb():
+    with connect_to_natlpark_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM natlpark")
+        rows = cur.fetchall()
+    return '<br>'.join(str(row) for row in rows)
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
-
-def execute_query(query, args=()):
-    cur = get_db().execute(query, args)
-    rows = cur.fetchall()
-    cur.close()
-    return rows
+@app.route("/state/<state>")
+def sortby(state):
+    with connect_to_natlpark_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM natlpark WHERE state = ?", [state.title()])
+        rows = cur.fetchall()
+    return '<br>'.join(str(row) for row in rows)
 
 # ===========================
 # REGISTRATION ROUTES
@@ -66,7 +67,7 @@ def register():
                 words = f.read().split()
                 word_count = len(words)
 
-    with connect_users_db() as conn:
+    with connect_to_users_db() as conn:
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO users (username, password, firstname, lastname, email, address)
@@ -85,7 +86,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        with connect_users_db() as conn:
+        with connect_to_users_db() as conn:
             cur = conn.cursor()
             cur.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
             user = cur.fetchone()

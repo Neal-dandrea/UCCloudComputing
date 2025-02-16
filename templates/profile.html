@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+    <h2>Profile Information</h2>
+    <p>Username: {{ user[1] }}</p>
+    <p>First Name: {{ user[3] }}</p>
+    <p>Last Name: {{ user[4] }}</p>
+    <p>Email: {{ user[5] }}</p>
+    <p>Address: {{ user[6] }}</p>
+
+    {% if word_count %}
+        <h3>Uploaded File Word Count: {{ word_count }}</h3>
+        <a href="/download">Download Uploaded File</a>
+    {% endif %}
+
+    <a href="/login">Log in Again</a>
+</body>
+</html>
+
